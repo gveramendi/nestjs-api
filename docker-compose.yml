@@ -1,6 +1,20 @@
 version: '3.8'
 
 services:
+  db:
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_DB=${DATABASE_NAME}
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+    ports:
+      - '5432:5432'
+    container_name: postgres-db
+    networks:
+      - nesjs-network
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
   dev:
     container_name: nestjs_api_dev
     image: nestjs-api-dev:1.0.0
@@ -8,10 +22,20 @@ services:
       context: .
       target: development
       dockerfile: ./Dockerfile
+    depends_on:
+      - db
+    environment:
+      - APP_PORT=${APP_PORT}
+      - APP_GLOBAL_PREFIX=${APP_GLOBAL_PREFIX}
+      - DB_TYPE=${DATABASE_TYPE}
+      - POSTGRES_HOST=${DATABASE_HOST}
+      - POSTGRES_PORT=${DATABASE_PORT}
+      - POSTGRES_DB=${DATABASE_NAME}
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASS=${DATABASE_PASSWORD}
     command: npm run start:debug
     ports:
       - 3000:3000
-      - 9229:9229
     networks:
       - nesjs-network
     volumes:
@@ -25,6 +49,17 @@ services:
       context: .
       target: production
       dockerfile: ./Dockerfile
+    depends_on:
+      - db
+    environment:
+      - APP_PORT=${APP_PORT}
+      - APP_GLOBAL_PREFIX=${APP_GLOBAL_PREFIX}
+      - DB_TYPE=${DATABASE_TYPE}
+      - POSTGRES_HOST=${DATABASE_HOST}
+      - POSTGRES_PORT=${DATABASE_PORT}
+      - POSTGRES_DB=${DATABASE_NAME}
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASS=${DATABASE_PASSWORD}
     command: npm run start:prod
     ports:
       - 3000:3000
@@ -38,3 +73,6 @@ services:
 
 networks:
   nesjs-network:
+
+volumes:
+  pgdata:
